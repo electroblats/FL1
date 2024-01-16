@@ -85,7 +85,7 @@ def main():
     # ClientManager = fl.server.ClientManager.wait_for(num_clients=2, timeout=10)
     
     ClientManager = fl.server.client_manager.SimpleClientManager()
-    client_manager = fl.server.client_manager.ClientManager.wait_for(ClientManager,num_clients=args.num_clients,timeout=10)
+    client_manager = fl.server.client_manager.ClientManager.wait_for(ClientManager,num_clients=args.num_clients,timeout=200)
 
     # Start Flower server
     fl.server.start_server(

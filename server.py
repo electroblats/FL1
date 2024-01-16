@@ -80,15 +80,16 @@ def main():
     )
 
     # Waits for a specified number of clients, num_clients
-    # client_manager=fl.server.ClientManager.wait_for(num_clients=args.num_clients,timeout=10)
+    client_manager=fl.server.client_manager.SimpleClientManager.wait_for(num_clients=args.num_clients)
+    
 
     # Start Flower server
     fl.server.start_server(
         server_address=args.server_address,
         config=fl.server.ServerConfig(num_rounds=3),
         strategy=strategy,
-        # client_manager=client_manager,
-        client_manager=fl.server.client_manager.SimpleClientManager.wait_for(num_clients=args.num_clients)
+        client_manager=client_manager,
+        # client_manager=fl.server.client_manager.SimpleClientManager.wait_for(num_clients=args.num_clients),
     )
     # fl.server.ClientManager.wait_for(num_clients=args.num_clients,timeout=10)
 

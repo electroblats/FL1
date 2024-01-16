@@ -9,6 +9,9 @@ ssh pi5@pi5.local
 cd FL1
 
 python3 server.py --rounds 3 --min_num_clients 2 --sample_fraction 1.0 --server_address=192.168.50.135:8080
+python3 server.py --rounds 3 --min_num_clients 3 --sample_fraction 1.0 --server_address=192.168.50.135:8080
+python3 server.py --rounds 3 --min_num_clients 4 --sample_fraction 1.0 --server_address=192.168.50.135:8080
+
 python3 client.py --cid=1 --server_address=192.168.50.135:8080
 python3 client.py --cid=2 --server_address=192.168.50.135:8080
 python3 client.py --cid=3 --server_address=192.168.50.135:8080

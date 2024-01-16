@@ -35,6 +35,12 @@ parser.add_argument(
     action="store_true",
     help="If you use Raspberry Pi Zero clients (which just have 512MB or RAM) use MNIST",
 )
+parser.add_argument(
+    "--num_clients",
+    type=int,
+    default=2,
+    help="Minimum number of available clients required to start FL",
+)
 
 
 # Define metric aggregation function
@@ -78,6 +84,7 @@ def main():
         server_address=args.server_address,
         config=fl.server.ServerConfig(num_rounds=3),
         strategy=strategy,
+        client_manager=fl.server.client_manager(num_clients=args.num_clients),
     )
 
 

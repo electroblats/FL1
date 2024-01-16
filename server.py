@@ -79,12 +79,15 @@ def main():
         evaluate_metrics_aggregation_fn=weighted_average,
     )
 
+    # Waits for a specified number of clients, num_clients
+    client_manager=fl.server.ClientManager.wait_for(num_clients=args.num_clients,timeout=10)
+
     # Start Flower server
     fl.server.start_server(
         server_address=args.server_address,
         config=fl.server.ServerConfig(num_rounds=3),
         strategy=strategy,
-        client_manager=fl.server.ClientManager.wait_for(num_clients=args.num_clients),
+        client_manager=client_manager,
     )
 
 

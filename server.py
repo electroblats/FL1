@@ -94,7 +94,7 @@ def main():
         strategy=strategy,
         # client_manager=client_manager,
         # client_manager=fl.server.client_manager.SimpleClientManager.wait_for(num_clients=args.num_clients),
-        client_manager=fl.server.client_manager.SimpleClientManager.wait_for(fl.server.ClientManager,num_clients=3,timeout=400),
+        client_manager=fl.server.client_manager.SimpleClientManager.wait_for(self=fl.server.ClientManager,num_clients=3,timeout=400),
     )
     # fl.server.ClientManager.wait_for(num_clients=args.num_clients,timeout=10)
 

@@ -35,6 +35,8 @@ parser.add_argument(
 
 warnings.filterwarnings("ignore", category=UserWarning)
 NUM_CLIENTS = 50
+# NUM_CLIENTS = 5
+
 
 # a config for mobilenetv2 that works for
 # small input sizes (i.e. 32x32 as in CIFAR)

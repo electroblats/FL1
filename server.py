@@ -25,15 +25,16 @@ parser.add_argument(
     help="Fraction of available clients used for fit/evaluate (default: 1.0)",
 )
 parser.add_argument(
-    "--min_num_clients",
+    "--min_num_fit",
     type=int,
     default=2,
-    help="Minimum number of available clients required for sampling (default: 2)",
+    help="Minimum number of available clients required for fit (default: 2)",
 )
 parser.add_argument(
-    "--mnist",
-    action="store_true",
-    help="If you use Raspberry Pi Zero clients (which just have 512MB or RAM) use MNIST",
+    "--min_num_evaluate",
+    type=int,
+    default=2,
+    help="Minimum number of available clients required for evaluate (default: 2)",
 )
 parser.add_argument(
     "--num_clients",
@@ -47,6 +48,12 @@ parser.add_argument(
 #     default=2,
 #     help="Minimum number of available clients required to start FedAvg",
 # )
+parser.add_argument(
+    "--settings",
+    type=bool,
+    default=False,
+    help="advanced or simple sampling settings",
+)
 
 
 # Define metric aggregation function
@@ -65,8 +72,10 @@ def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
 def fit_config(server_round: int):
     """Return a configuration with static batch size and (local) epochs."""
     config = {
-        "epochs": 3,  # Number of local epochs done by clients
-        "batch_size": 16,  # Batch size to use by clients during fit()
+        # "epochs": 3,  # Number of local epochs done by clients
+        # "batch_size": 16,  # Batch size to use by clients during fit()
+        "epochs": args.epochs,  # Number of local epochs done by clients
+        "batch_size": args.batch,  # Batch size to use by clients during fit()
     }
     return config
 
@@ -76,24 +85,32 @@ def main():
 
     print(args)
 
-    # Define strategy
-    strategy = fl.server.strategy.FedAvg(
-        fraction_fit=args.sample_fraction,
-        fraction_evaluate=args.sample_fraction,
-        min_fit_clients=args.min_num_clients,
-        on_fit_config_fn=fit_config,
-        evaluate_metrics_aggregation_fn=weighted_average,
-        # min_available_clients = args.min_available_clients,
-    )
+    if (args.settings):
+        # Define strategy (advanced sampling options)
+        strategy = fl.server.strategy.FedAvg(
+            fraction_fit=args.sample_fraction,
+            fraction_evaluate=args.sample_fraction,
+            min_fit_clients=args.min_num_fit,
+            min_evaluate_clients=args.min_num_evaluate,
+            # min_available_clients=args.min_available_clients,
+            min_available_clients=args.num_clients,
+            on_fit_config_fn=fit_config,
+            evaluate_metrics_aggregation_fn=weighted_average,
+            )
+    else:
+        # Define strategy (simple sampling options)
+        strategy = fl.server.strategy.FedAvg(
+            fraction_fit=args.sample_fraction,
+            fraction_evaluate=args.sample_fraction,
+            min_fit_clients=args.num_clients,
+            min_evaluate_clients=args.num_clients,
+            # min_available_clients=args.min_available_clients,
+            min_available_clients=args.num_clients,
+            on_fit_config_fn=fit_config,
+            evaluate_metrics_aggregation_fn=weighted_average,
+        )
 
     # Waits for a specified number of clients, num_clients
-    # client_manager = fl.server.client_manager.SimpleClientManager.wait_for(num_clients=2, timeout=10)
-    # client_manager = fl.server.SimpleClientManager.wait_for(num_clients=2, timeout=10)
-    # ClientManager = fl.server.ClientManager.wait_for(num_clients=2, timeout=10)
-    
-    # ClientManager = fl.server.client_manager.SimpleClientManager()
-    # client_manager = fl.server.client_manager.ClientManager.wait_for(ClientManager,num_clients=args.num_clients,timeout=200)
-
     client_manager = fl.server.client_manager.SimpleClientManager(
         wait_for = {
             "num_clients": args.num_clients,
@@ -107,10 +124,7 @@ def main():
         config=fl.server.ServerConfig(num_rounds=3),
         strategy=strategy,
         client_manager=client_manager,
-        # client_manager=fl.server.client_manager.SimpleClientManager.wait_for(num_clients=args.num_clients),
-        # client_manager=fl.server.client_manager.SimpleClientManager.wait_for(self=server,num_clients=3,timeout=400),
     )
-    # fl.server.ClientManager.wait_for(num_clients=args.num_clients,timeout=10)
 
 
 if __name__ == "__main__":

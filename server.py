@@ -41,12 +41,12 @@ parser.add_argument(
     default=2,
     help="Minimum number of available clients required to start FL",
 )
-parser.add_argument(
-    "--min_available_clients",
-    type=int,
-    default=2,
-    help="Minimum number of available clients required to start FedAvg",
-)
+# parser.add_argument(
+#     "--min_available_clients",
+#     type=int,
+#     default=2,
+#     help="Minimum number of available clients required to start FedAvg",
+# )
 
 
 # Define metric aggregation function
@@ -81,9 +81,9 @@ def main():
         fraction_fit=args.sample_fraction,
         fraction_evaluate=args.sample_fraction,
         min_fit_clients=args.min_num_clients,
-        min_available_clients = args.min_available_clients,
         on_fit_config_fn=fit_config,
         evaluate_metrics_aggregation_fn=weighted_average,
+        # min_available_clients = args.min_available_clients,
     )
 
     # Waits for a specified number of clients, num_clients

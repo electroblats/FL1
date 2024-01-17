@@ -84,16 +84,17 @@ def main():
     # client_manager = fl.server.SimpleClientManager.wait_for(num_clients=2, timeout=10)
     # ClientManager = fl.server.ClientManager.wait_for(num_clients=2, timeout=10)
     
-    ClientManager = fl.server.client_manager.SimpleClientManager()
-    client_manager = fl.server.client_manager.ClientManager.wait_for(ClientManager,num_clients=args.num_clients,timeout=200)
+    # ClientManager = fl.server.client_manager.SimpleClientManager()
+    # client_manager = fl.server.client_manager.ClientManager.wait_for(ClientManager,num_clients=args.num_clients,timeout=200)
 
     # Start Flower server
-    fl.server.start_server(
+    server = fl.server.start_server(
         server_address=args.server_address,
         config=fl.server.ServerConfig(num_rounds=3),
         strategy=strategy,
-        client_manager=client_manager,
+        # client_manager=client_manager,
         # client_manager=fl.server.client_manager.SimpleClientManager.wait_for(num_clients=args.num_clients),
+        client_manager=fl.server.client_manager.SimpleClientManager.wait_for(server,num_clients=3,timeout=400),
     )
     # fl.server.ClientManager.wait_for(num_clients=args.num_clients,timeout=10)
 

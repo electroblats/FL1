@@ -4,6 +4,8 @@ from typing import List, Tuple
 import flwr as fl
 from flwr.common import Metrics
 
+# To run:
+# python3 server.py --rounds 3 --num_clients 2 --server_address=192.168.50.135:8080 --settings 0 --epochs 3 --batch 16
 
 parser = argparse.ArgumentParser(description="Flower Embedded devices")
 parser.add_argument(
@@ -36,12 +38,6 @@ parser.add_argument(
     default=2,
     help="Minimum number of available clients required for evaluate (default: 2)",
 )
-parser.add_argument(
-    "--num_clients",
-    type=int,
-    default=2,
-    help="Minimum number of available clients required to start FL",
-)
 # parser.add_argument(
 #     "--min_available_clients",
 #     type=int,
@@ -49,10 +45,28 @@ parser.add_argument(
 #     help="Minimum number of available clients required to start FedAvg",
 # )
 parser.add_argument(
+    "--num_clients",
+    type=int,
+    default=2,
+    help="Minimum number of available clients required to start FL",
+)
+parser.add_argument(
     "--settings",
-    type=bool,
-    default=False,
+    type=int,
+    default=0,
     help="advanced or simple sampling settings",
+)
+parser.add_argument(
+    "--epochs",
+    type=int,
+    default=3,
+    help="Number of local epochs done by clients",
+)
+parser.add_argument(
+    "--batch",
+    type=int,
+    default=16,
+    help="Batch size to use by clients during fit()",
 )
 
 
@@ -85,7 +99,7 @@ def main():
 
     print(args)
 
-    if (args.settings):
+    if (args.settings==1):
         # Define strategy (advanced sampling options)
         strategy = fl.server.strategy.FedAvg(
             fraction_fit=args.sample_fraction,

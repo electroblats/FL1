@@ -83,21 +83,21 @@ def weighted_average(metrics: List[Tuple[int, Metrics]]) -> Metrics:
     return {"accuracy": sum(accuracies) / sum(examples)}
 
 
-# def fit_config(server_round: int):
-#     """Return a configuration with static batch size and (local) epochs."""
-#     config = {
-#         "epochs": 3,  # Number of local epochs done by clients
-#         "batch_size": 16,  # Batch size to use by clients during fit()
-#     }
-#     return config
-
-def fit_config(epochs=3,batch_size=16):
-    """Return a configuration with batch size and (local) epochs."""
+def fit_config(server_round: int):
+    """Return a configuration with static batch size and (local) epochs."""
     config = {
-        "epochs": epochs,  # Number of local epochs done by clients
-        "batch_size": batch_size,  # Batch size to use by clients during fit()
+        "epochs": 3,  # Number of local epochs done by clients
+        "batch_size": 16,  # Batch size to use by clients during fit()
     }
     return config
+
+# def fit_config(epochs=3,batch_size=16):
+#     """Return a configuration with batch size and (local) epochs."""
+#     config = {
+#         "epochs": epochs,  # Number of local epochs done by clients
+#         "batch_size": batch_size,  # Batch size to use by clients during fit()
+#     }
+#     return config
 
 
 def main():
@@ -114,8 +114,8 @@ def main():
             min_evaluate_clients=args.min_num_evaluate,
             # min_available_clients=args.min_available_clients,
             min_available_clients=args.num_clients,
-            # on_fit_config_fn=fit_config,
-            on_fit_config_fn=fit_config(args.epochs,args.batch),
+            on_fit_config_fn=fit_config,
+            # on_fit_config_fn=fit_config(args.epochs,args.batch),
             evaluate_metrics_aggregation_fn=weighted_average,
             )
     else:
@@ -127,8 +127,8 @@ def main():
             min_evaluate_clients=args.num_clients,
             # min_available_clients=args.min_available_clients,
             min_available_clients=args.num_clients,
-            # on_fit_config_fn=fit_config,
-            on_fit_config_fn=fit_config(args.epochs,args.batch),
+            on_fit_config_fn=fit_config,
+            # on_fit_config_fn=fit_config(args.epochs,args.batch),
             evaluate_metrics_aggregation_fn=weighted_average,
         )
 

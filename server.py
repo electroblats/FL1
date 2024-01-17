@@ -41,6 +41,12 @@ parser.add_argument(
     default=2,
     help="Minimum number of available clients required to start FL",
 )
+parser.add_argument(
+    "--min_available_clients",
+    type=int,
+    default=2,
+    help="Minimum number of available clients required to start FedAvg",
+)
 
 
 # Define metric aggregation function
@@ -75,6 +81,7 @@ def main():
         fraction_fit=args.sample_fraction,
         fraction_evaluate=args.sample_fraction,
         min_fit_clients=args.min_num_clients,
+        min_available_clients = args.min_available_clients,
         on_fit_config_fn=fit_config,
         evaluate_metrics_aggregation_fn=weighted_average,
     )
@@ -87,14 +94,21 @@ def main():
     # ClientManager = fl.server.client_manager.SimpleClientManager()
     # client_manager = fl.server.client_manager.ClientManager.wait_for(ClientManager,num_clients=args.num_clients,timeout=200)
 
+    client_manager = fl.server.client_manager.SimpleClientManager(
+        wait_for = {
+            "num_clients": args.num_clients,
+            "timeout": 200,
+        },
+    )
+
     # Start Flower server
     server = fl.server.start_server(
         server_address=args.server_address,
         config=fl.server.ServerConfig(num_rounds=3),
         strategy=strategy,
-        # client_manager=client_manager,
+        client_manager=client_manager,
         # client_manager=fl.server.client_manager.SimpleClientManager.wait_for(num_clients=args.num_clients),
-        client_manager=fl.server.client_manager.SimpleClientManager.wait_for(self=fl.server.client_manager.ClientManager,num_clients=3,timeout=400),
+        # client_manager=fl.server.client_manager.SimpleClientManager.wait_for(self=server,num_clients=3,timeout=400),
     )
     # fl.server.ClientManager.wait_for(num_clients=args.num_clients,timeout=10)
 

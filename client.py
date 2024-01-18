@@ -8,7 +8,7 @@ import torch.nn as nn
 # import tenseal as ts
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, random_split
-from torchvision.datasets import CIFAR10, MNIST
+from torchvision.datasets import CIFAR10
 from torchvision.transforms import Compose, Normalize, ToTensor
 from torchvision.models import mobilenet_v3_small
 from tqdm import tqdm
@@ -25,11 +25,6 @@ parser.add_argument(
     type=int,
     required=True,
     help="Client id. Should be an integer between 0 and NUM_CLIENTS",
-)
-parser.add_argument(
-    "--mnist",
-    action="store_true",
-    help="If you use Raspberry Pi Zero clients (which just have 512MB or RAM) use MNIST",
 )
 
 
@@ -49,27 +44,6 @@ mb2_cfg = [
     (6, 160, 3, 2),
     (6, 320, 1, 1),
 ]
-
-
-class Net(nn.Module):
-    """Model (simple CNN adapted from 'PyTorch: A 60 Minute Blitz')."""
-
-    def __init__(self) -> None:
-        super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(1, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 4 * 4, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 4 * 4)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        return self.fc3(x)
 
 
 def train(net, trainloader, optimizer, epochs, device):
@@ -96,13 +70,10 @@ def test(net, testloader, device):
     return loss, accuracy
 
 
-def prepare_dataset(use_mnist: bool):
-    """Get MNIST/CIFAR-10 and return client partitions and global testset."""
-    dataset = MNIST if use_mnist else CIFAR10
-    if use_mnist:
-        norm = Normalize((0.1307,), (0.3081,))
-    else:
-        norm = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+def prepare_dataset():
+    """Get CIFAR-10 and return client partitions and global testset."""
+    dataset = CIFAR10
+    norm = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 
     trf = Compose([ToTensor(), norm])
     trainset = dataset("./data", train=True, download=True, transform=trf)
@@ -163,21 +134,16 @@ def prepare_dataset(use_mnist: bool):
 #     return decrypted_params
 
 
-# Flower client, adapted from Pytorch quickstart/simulation example
+# Flower client
 class FlowerClient(fl.client.NumPyClient):
-    """A FlowerClient that trains a MobileNetV3 model for CIFAR-10 or a much smaller CNN
-    for MNIST."""
+    """A FlowerClient that trains a MobileNetV3 model for CIFAR-10"""
 
-    def __init__(self, trainset, valset, use_mnist):
+    def __init__(self, trainset, valset):
         self.trainset = trainset
         self.valset = valset
         # Instantiate model
-        if use_mnist:
-            self.model = Net()
-        else:
-            self.model = mobilenet_v3_small(num_classes=10)
-            # let's not reduce spatial resolution too early
-            self.model.features[0][0].stride = (1, 1)
+        self.model = mobilenet_v3_small(num_classes=10)
+        self.model.features[0][0].stride = (1, 1)
         # Determine device
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)  # send model to device
@@ -194,6 +160,7 @@ class FlowerClient(fl.client.NumPyClient):
         self.model.load_state_dict(state_dict, strict=True)
 
     def get_parameters(self, config):
+        # Tenseal can decrypt here!
         return [val.cpu().numpy() for _, val in self.model.state_dict().items()]
 
     def fit(self, parameters, config):
@@ -227,15 +194,14 @@ def main():
 
     assert args.cid < NUM_CLIENTS
 
-    use_mnist = args.mnist
     # Download CIFAR-10 dataset and partition it
-    trainsets, valsets, _ = prepare_dataset(use_mnist)
+    trainsets, valsets, _ = prepare_dataset()
 
     # Start Flower client setting its associated data partition
     fl.client.start_numpy_client(
         server_address=args.server_address,
         client=FlowerClient(
-            trainset=trainsets[args.cid], valset=valsets[args.cid], use_mnist=use_mnist
+            trainset=trainsets[args.cid], valset=valsets[args.cid]
         ),
     )
 

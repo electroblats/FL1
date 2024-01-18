@@ -50,6 +50,30 @@ mb2_cfg = [
 ]
 
 
+def train(net, trainloader, optimizer, epochs, device):
+    """Train the model on the training set."""
+    criterion = torch.nn.CrossEntropyLoss()
+    for _ in range(epochs):
+        for images, labels in tqdm(trainloader):
+            optimizer.zero_grad()
+            criterion(net(images.to(device)), labels.to(device)).backward()
+            optimizer.step()
+
+
+def test(net, testloader, device):
+    """Validate the model on the test set."""
+    criterion = torch.nn.CrossEntropyLoss()
+    correct, loss = 0, 0.0
+    with torch.no_grad():
+        for images, labels in tqdm(testloader):
+            outputs = net(images.to(device))
+            labels = labels.to(device)
+            loss += criterion(outputs, labels).item()
+            correct += (torch.max(outputs.data, 1)[1] == labels).sum().item()
+    accuracy = correct / len(testloader.dataset)
+    return loss, accuracy
+
+
 def prepare_dataset(num_client):
 
     """Get CIFAR-10 and return client partitions and global testset."""

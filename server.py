@@ -144,7 +144,7 @@ def main():
     server = fl.server.start_server(
         server_address=args.server_address,
         # config=fl.server.ServerConfig(num_rounds=3),
-        config=fl.server.ServerConfig(args.rounds),
+        config=fl.server.ServerConfig(num_rounds=args.rounds),
         strategy=strategy,
         # client_manager=client_manager,
     )

@@ -4,14 +4,11 @@ from collections import OrderedDict
 
 import flwr as fl
 import torch
-import torch.nn as nn
 # import tenseal as ts
-import torch.nn.functional as F
 from torch.utils.data import DataLoader, random_split
 from torchvision.datasets import CIFAR10
 from torchvision.transforms import Compose, Normalize, ToTensor
 from torchvision.models import mobilenet_v3_small
-from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description="Flower Embedded devices")
 parser.add_argument(
@@ -46,31 +43,8 @@ mb2_cfg = [
 ]
 
 
-def train(net, trainloader, optimizer, epochs, device):
-    """Train the model on the training set."""
-    criterion = torch.nn.CrossEntropyLoss()
-    for _ in range(epochs):
-        for images, labels in tqdm(trainloader):
-            optimizer.zero_grad()
-            criterion(net(images.to(device)), labels.to(device)).backward()
-            optimizer.step()
-
-
-def test(net, testloader, device):
-    """Validate the model on the test set."""
-    criterion = torch.nn.CrossEntropyLoss()
-    correct, loss = 0, 0.0
-    with torch.no_grad():
-        for images, labels in tqdm(testloader):
-            outputs = net(images.to(device))
-            labels = labels.to(device)
-            loss += criterion(outputs, labels).item()
-            correct += (torch.max(outputs.data, 1)[1] == labels).sum().item()
-    accuracy = correct / len(testloader.dataset)
-    return loss, accuracy
-
-
 def prepare_dataset():
+
     """Get CIFAR-10 and return client partitions and global testset."""
     dataset = CIFAR10
     norm = Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
